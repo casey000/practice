@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,user-scalable=no,initial-scale=1.0" name="viewport">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="format-detection" content="telephone=no">
+    <title></title>
+    <link rel="shortcut icon" href="./favicon.ico" title="Favicon" type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" href="./static/iconfont/iconfont.css">
+
+    <script src="https://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script>
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script src="static/js/aes.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script>  
+	<script src="https://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.min.js"></script>  
+	<!--<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">-->
+	<!--<link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">-->
+	<!--<link rel="stylesheet" href="./static/sass/base.css">-->
+	
+    <!--<link rel="stylesheet" type="text/css" href="./src/common/jQuerySwipeslider/swipeslider.css">-->
+    <!--<link rel="stylesheet" type="text/css" href="./common/jQuerySwipeslider/dist/swipeslider.css">-->
+    <!--<script type="text/javascript" src="./common/jQuerySwipeslider/dist/swipeslider.min.js"></script>-->
+ 	<!--引入jq生成二维码练级额-->
+    <!--<script src="jquery.qrcode.min.js" type="text/javascript" charset="utf-8"></script>-->
+  <script>
+        //动态设置当前 rem基数
+        //  @param designWidth   - - UI width
+        //  @param rem2px        - - define size
+        function adapt(designWidth,rem2px) {
+          //设置根元素字体大小（即rem的参照基数）
+          //（设置当前屏幕宽度 / 设计稿宽度） * （当前1rem的取值 / 当前默认字体的大小）*100+ "%"
+          
+          document.documentElement.style.fontSize = (window.screen.width / designWidth) * rem2px + 'px';
+          if(window.screen.width>750){
+          	 document.documentElement.style.fontSize=16+'px'
+          }
+        };
+        //目前设计稿375，根font-size 100px 尺寸 除以100  单位：rem  // adapt(750,16)
+        
+        adapt(750,16);
+
+  </script>
+  
+</head>
+
+<body>
+    <div id="app" style="height: 100%"></div>
+    <!-- built files will be auto injected -->
+</body>
+<style>
+  body { /* IOS禁止微信调整字体大小 */
+    -webkit-text-size-adjust: 100% !important;
+  }
+</style>
+</html>

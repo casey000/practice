@@ -1,0 +1,1726 @@
+<template>
+  <div class="home-content fontSize-12" v-title data-title="邮讯通商城龙卡专区">
+    <!--头部搜索-->
+    <!--<scroller height="-0.01" lock-x @on-scroll-bottom="scrollerRequire">-->
+    <div class="search-main f-oh">
+      <div class="search-inp-main f-oh f-fl">
+        <i class="icon iconfont icon-search f-fl" @click="searchBtn()" ></i>
+        <input class="head-search f-fl fontSize-15"  @click="searchBtn()" v-model="homeSearchWord" type="text" placeholder="邮讯通免息购物平台">
+      </div>
+      <div class="search-btn f-pr f-fl w-color" @click = "toMes">
+        <span class="newsNum" v-if="msgCount > 0">{{msgCount}}</span>
+        <img src="../../static/img/homemes.png"/>
+      </div>
+    </div>
+    <div style="font-size: 1.5rem;color: gray;height: 2rem;line-height:2rem; text-align: center">商品及服务由邮讯通负责，建设银行仅提供信用卡分期支付</div>
+    <!--首页轮播图-->
+    <div class="slideshow-content" >
+      <mt-swipe :auto="4000">
+        <mt-swipe-item v-for="(item,i) in lunboUrl" class="f-oh" :key="i">
+          <a :href=item.url>
+            <img class="slideshow-pic f-fl" :src=item.img alt="">
+          </a>
+        </mt-swipe-item>
+      </mt-swipe>
+    </div>
+    <div class="item-list b-white">
+      <ul class="list-main f-oh">
+        <li class="list-main-row f-fl f-oh" v-for="(item,i) in itemLists" :key="i">
+          <div class="li-inner">
+            <img class="list-pic f-fl" v-lazy= item.imgSrc alt="">
+            <p class="word f-fl m-left5">{{ item.word }}</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!--喇叭轮播图-->
+    <!--<div class="laba-adv m-top10">
+      <souna-component :fastNews="fastNews"></souna-component>
+    </div>-->
+
+    <!--功能列表>领优惠劵-今日抢购-->
+    <div class="active-item-list b-white">
+      <ul class="active-item-main f-oh">
+        <li class="active-item-main-row f-fl m-bottom10" v-for="data in daohangData">
+          <a :href=data.link>
+            <img class="active-pics" :src = "data.icon" :alt="data.title">
+            <p class="active-words m-top5">{{data.title}}</p>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!--秒杀专场-->
+    <div class="miaos b-white fontSize-12 m-top10">
+      <p class="top" v-if="!noSecond" @click="toBuy">
+        <span class="tit">秒杀倒计时(进行中...)</span>
+        <span class="time f-fr"><i>{{hour}}</i> : <i>{{minutes}}</i> : <i>{{seconds}}</i></span>
+        <span class="name f-fr">下一场<!--{{secondTime.title.split(':')[0]}}点--><!--<span v-if="secondTime.title.split(':')[1] !== '00'">{{secondTime.title.split(':')[1]}}分</span>--></span>
+      </p>
+      <p class="top" v-else>
+        <span class="tit">秒杀倒计时(已结束)</span>
+      </p>
+      <ul class="msList" style="" v-if="!noSecond" @click="toBuy">
+        <li class="" v-for="data in productList">
+          <img :src="data.productLogo" >
+          <p>¥{{data.money}}<i>¥{{data.marketPrice}}</i></p>
+        </li>
+      </ul>
+    </div>
+
+    <!--优惠券专区-->
+    <div  v-for="(area, ind) in indexAreaList">
+      <div class="coupon-main b-white fontSize-12" v-if="ind == 0">
+        <p class="title">
+          <!--<img src="../../static/img/couponbg.png" class="bgimg">-->
+          <img :src="area.background" class="bgimg">
+          <em>{{area.title}}</em>
+          <span class="fr" @click="moreCoupon(area.id)">更多<img src="../../static/img/getin.png" alt="" /></span></p>
+        <div class="all-Coupon">
+          <router-link :to = "{ path: area.imgLink}">
+            <img v-lazy=area.img />
+          </router-link>
+        </div>
+        <div class="coupon-divide">
+          <div class="top">
+            <router-link :to = "{ path: area.imgLink}" v-for="(data, ind) in couponData" :class="{ 'ds': ind%2 == 0}" :key = "ind">
+              <p class="tit">{{data.couponName}}</p>
+              <p class="num">{{data.couponInfo}}</p>
+              <img :src="data.icon"/>
+            </router-link>
+          </div>
+        </div>
+      </div>
+      <!--活动专区-->
+      <div class="active-main b-white" v-if="ind == 1">
+        <p class="title">
+          <!--<img src="../../static/img/couponbg.png" class="bgimg">-->
+          <img :src="area.background" class="bgimg">
+          <em>{{area.title}}</em>
+          <span class="fr" @click="more(area.id)">更多<img src="../../static/img/getin.png" alt="" /></span></p>
+        <div class="active-show f-oh">
+          <div class="left f-fl" v-if="i == 0" v-for="(product, i) in area.indexProductList">
+            <p class="brand">{{product.title}}</p>
+            <p class="detail">{{product.subTitle}}</p>
+            <img v-lazy=product.productLogo @click="toProDetail(product.productId)"/>
+          </div>
+          <div class="right f-fl" v-if="i == 1 || i == 2" v-for="(product, i) in area.indexProductList">
+            <div class="" v-if="i == 1">
+              <p class="brand">{{product.title}}</p>
+              <p class="detail">{{product.subTitle}}</p>
+              <img v-lazy=product.productLogo @click="toProDetail(product.productId)" style="height: 75%;width: auto;bottom: 0;position: absolute;right: 2rem"/>
+            </div>
+            <div class="" v-if="i == 2">
+              <p class="brand">{{product.title}}</p>
+              <p class="detail">{{product.subTitle}}</p>
+              <img v-lazy=product.productLogo @click="toProDetail(product.productId)" style="height: 75%;width: auto;bottom: 0;position: absolute;right: 2rem"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--进店必买专区-->
+      <div class="must-buy b-white" v-if="ind == 2">
+        <p class="title">
+          <!--<img src="../../static/img/couponbg.png" class="bgimg">-->
+          <img :src="area.background" class="bgimg">
+
+          <em>{{area.title}}</em>
+          <span class="fr" @click="more(area.id)">更多<img src="../../static/img/getin.png" alt="" /></span></p>
+        <div class="buy-ad">
+          <router-link :to = "{ path: area.imgLink}">
+            <img v-lazy=area.img />
+          </router-link>
+        </div>
+        <div class="must-list">
+          <ul class="f-oh">
+            <li class="f-fl" v-for="product in area.indexProductList">
+              <dt>
+                <img v-lazy=product.productLogo @click="toProDetail(product.productId)"/>
+                <p class="txt">{{product.productName}}</p>
+                <p class="price">¥{{product.mallPrice}}</p>
+              </dt>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!--满减专区-->
+      <div class="must-buy b-white" v-if="ind == 3">
+        <p class="title">
+          <!--<img src="../../static/img/couponbg.png" class="bgimg">-->
+          <img :src="area.background" class="bgimg">
+
+          <em>{{area.title}}</em>
+          <span class="fr" @click="more(area.id)">更多<img src="../../static/img/getin.png" alt="" /></span></p>
+        <div class="buy-ad">
+          <router-link :to = "{ path: area.imgLink}">
+            <img v-lazy=area.img />
+          </router-link>
+        </div>
+        <ul class="msList  m-top10 p-bottom10">
+          <li class="" v-for="product in area.indexProductList">
+            <img v-lazy=product.productLogo @click="toProDetail(product.productId)"/>
+            <p>¥{{product.mallPrice}}<i>¥{{product.marketPrice}}</i></p>
+          </li>
+        </ul>
+      </div>
+
+      <!--精选专区-->
+      <div class="must-buy b-white" v-if="ind == 4">
+        <p class="title">
+          <img :src="area.background" class="bgimg">
+          <!--<img src="../../static/img/couponbg.png" class="bgimg">-->
+          <em>{{area.title}}</em>
+          <span class="fr" @click="more(area.id)">更多<img src="../../static/img/getin.png" alt="" /></span></p>
+        <div class="buy-ad">
+          <router-link :to = "{ path: area.imgLink}">
+            <img v-lazy=area.img />
+          </router-link>
+        </div>
+        <div class="must-list">
+          <ul class="f-oh">
+            <li class="f-fl" v-for="product in area.indexProductList">
+              <dt>
+                <img :src="product.productLogo" @click="toProDetail(product.productId)"/>
+                <p class="txt">{{product.productName}}</p>
+                <p class="price">¥{{product.mallPrice}}</p>
+              </dt>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <beian></beian>
+    <div class="black-cover" v-if="isShowBlackCover">
+
+    </div>
+  </div>
+</template>
+
+<script>
+  //导入子组件
+  import axios from 'axios'
+  import comLink from "../common/common_link"; //导入总线
+  import { Swiper,GroupTitle, SwiperItem } from 'vux'
+  import $ from "jquery"; //导入jquery
+  import { Indicator , Lazyload , Toast} from "mint-ui";
+  import beian from "@/subcomponents/beian.vue";
+
+  export default {//
+    name: "home-mian",
+    data() {
+      return {
+        headTitle : '邮讯通专区',
+        picId: 0,
+        gengduoIndex : 0,
+        isMarginRight : '',
+        timer: null,
+        checkMore : '@/../static/image/home/check_more.png',
+        imgSrc : '@/../static/image/home/banner_01.png',
+        couponImg : '@/../static/image/home/coupon_banner.png',
+        //轮播图演示路径
+        lunboUrl : [],
+        itemLists :[
+          {
+            word : '正品保障',
+            imgSrc : "@/../static/image/home/_01.png"
+          },
+          {
+            word : '正规发票',
+            imgSrc : "@/../static/image/home/_02.png"
+          },
+          {
+            word : '全国联保',
+            imgSrc : "@/../static/image/home/_03.png"
+          },
+          {
+            word : '24期免息',
+            imgSrc : "@/../static/image/home/_04.png"
+          }
+        ],
+        daohangData : [],//首页导航栏
+        daoIndex : 0,//导航下标
+        choicenessData : [],//精选频道数据
+        pinpaiProData : [],//品牌店铺及商品 后台数据
+        pinpaiStoreData : [],//品牌店铺数据
+        huidaodingbu : false,
+        pipaiIndex : 0,//品牌店铺点击下标
+        luobotuPics : [],//轮播图数组
+        couponData : [],//首页优惠劵列表
+        gerenInfos : {},//首页获取客户个人信息并存储
+        fastNews : [],//快讯列表
+        productList : [],//秒杀商品列表
+        secondTime : {},//秒杀对象
+        indexAreaList : [],//首页专区
+        hour : '',//倒计时
+        minutes : '',//倒计时
+        seconds : '',//倒计时
+        activeIndex: 0,
+        mineIcon : '@/../static/image/home/brand_store/mycenter_01.png',
+        shareIcon : '@/../static/img/share.jpg',
+        isShowFirstPop : false,
+        isShowBlackCover : false,
+        homePopObj : {},//首页弹窗内容
+        pop : {
+          phoneNumber : null,
+          isOk : false,
+        },
+        dianjile : false,
+        homeSearchWord : '',//头部搜索框输入文字
+        scoller:'',
+        msgCount:'0', //未读消息数量
+        noSecond:false, //无秒杀
+      }
+    },
+    created(){
+			var is_weixin = (function(){return navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1})();
+  		if(is_weixin){
+  			if(sessionStorage.first == '' || sessionStorage.first == null){
+  				window.location.reload();
+  				sessionStorage.setItem('first', '1')
+  			}
+
+  		}
+    },
+    mounted (){
+      if(sessionStorage.openid == null || sessionStorage.openid == 'null' || sessionStorage.openid == undefined || sessionStorage.openid == 'undefined' || sessionStorage.openid == '') {
+        this.getOpenId();
+      } else {
+        this.getManInfos();//获取个人信息
+      }
+      window.addEventListener('scroll', this.handleScroll);
+      this.homePopAxios();
+      this.luobotuAxios();//轮播图数据
+      this.daohangAxios();//首页导航栏
+      this.getSecondTime();
+      this.getAreaAndProduct();
+
+      this.getCouponAxios();//获取优惠劵
+      this.sendWxtoOther();
+
+      this.notReadMsgCount();
+    },
+    methods: {
+      //未读消息数
+      notReadMsgCount() {
+        var vm = this;
+        $.ajax({
+          url:comLink.yxtHost + '/message/notReadMsgCount',
+          data: {
+            'openid': sessionStorage.openid
+          },
+          dataType:'json',
+          type:'post',
+          success:function (resp) {
+            if(resp.code == 1){
+              vm.msgCount = resp.data;
+            }else{
+              Toast({
+                message: resp.msg,
+                duration: 2000
+              });
+            }
+          }
+        })
+      },
+      //去我的信息页
+      toMes(){
+        this.$router.push({
+          path:'/home/mynews'
+        })
+      },
+      //头部搜索按钮
+      searchBtn(){
+        $('input').blur();
+        this.$router.push({
+          path : '/home/homeSearchRouter',
+        })
+      },
+      closeHomePop(){
+        this.isShowFirstPop = false;
+        this.isShowBlackCover = false;
+        this.dianjile = true;
+      },
+      //获取首页广告弹窗
+      homePopAxios: function () {
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/index/activity',
+          data: {
+            openid: sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (data) {
+            if (data.code == 1) {
+              vm.homePopObj = data.data;
+              vm.homePopObj.logo = comLink.yxtImgHost + vm.homePopObj.logo
+            }
+          },
+          error: function (data) {
+          }
+        })
+      },
+      //24小时倒计时
+      daojishi(leftTime){
+        leftTime=parseInt(leftTime)
+        var hours =  Math.floor(leftTime / 1000 / 60 / 60 % 24); //计算剩余的小时
+        var minutes =  Math.floor(leftTime / 1000 / 60 % 60);//计算剩余的分钟
+        var seconds =  Math.floor(leftTime / 1000 % 60);//计算剩余的秒数
+        this.hour = hours < 10? '0'+hours:hours;
+        this.minutes = minutes < 10 ? '0'+minutes : minutes;
+        this.seconds = seconds < 10 ? '0'+seconds:seconds;
+      },
+      //当前秒杀
+      getSecondTime:function(){
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/secondTime/index',
+          data: {
+            'openid': sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (resp) {
+            if (resp.code == 1) {
+              vm.secondTime = resp.data.secondTime;
+              if(vm.secondTime == undefined) {
+                vm.noSecond = true;
+              }
+              vm.productList = resp.data.productList;
+              for( var i = 0,l = vm.productList.length; i < l; i ++){
+                vm.productList[i].productLogo =  comLink.yxtImgHost + vm.productList[i].productLogo;
+              }
+
+              var leftTime = 0;
+              if(vm.secondTime.countDown > 0) {
+                leftTime = vm.secondTime.countDown;
+              } else {
+                leftTime = vm.secondTime.countDown*(-1);
+              }
+
+              if(leftTime >= 0){
+                vm.timer = setInterval(function(){
+                  vm.daojishi(leftTime);
+                  leftTime -= 1000;
+                },1000);
+              }else{
+                vm.resttime=true;
+                clearInterval(vm.timer);
+              }
+            }
+          },
+          error: function (data) {
+          }
+        })
+      },
+      //到秒杀页面
+      toBuy() {
+        this.$router.push({
+          path: '/timeBuy'
+        })
+      },
+      //滚动方法
+      scrollerRequire() {//
+
+      },
+      //获取个人信息
+      getManInfos(){
+        var _vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/user/getInformation',
+          data: {
+            'openid': sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (data) {
+            if (data.code == 1) {
+              let userId = data.data.user.id;//userId
+            } else {
+              sessionStorage.clear();
+            }
+          },
+        })
+      },
+      //点击 品牌广告条 跳转品牌店铺
+      toBrandStore(item) {
+        this.$router.push({
+          path: '/home/brandStoreRouter',
+          query: {id: item.id}
+        })
+      },
+      //获取优惠劵列表
+      getCouponAxios: function () {
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/index/couponList',
+          data: {
+            'openid': sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (resp) {
+            if (resp.code == 1) {
+              vm.couponData = resp.data.slice(0, 4);
+              for(var i=0;i<vm.couponData.length;i++){
+                vm.couponData[i].icon = comLink.yxtImgHost + vm.couponData[i].icon;
+              }
+            } else {
+
+            }
+          },
+          error: function (data) {
+
+          }
+        })
+      },
+      //单品页面
+      toProDetail(productId) {
+        this.$router.push({
+          path: "/home/proDetailRouter",
+          query: {id: productId}
+        })
+      },
+      //更多优惠券页面
+      moreCoupon(areaId) {
+        this.$router.push({
+          path: "/indus/coupon",
+          query: {id: areaId}
+        })
+      },//单品页面
+      more(areaId) {
+        this.$router.push({
+          path: "/newpages/areaSaerch",
+          query: {id: areaId}
+        })
+      },
+      //点击搜索框中的头像 跳转个人中心
+      toMine() {
+        this.$router.push({
+          path: '/mine'
+        })
+      },
+      getJingxunaData(){
+
+      },
+      //首页导航栏
+      daohangAxios:function(){
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/index/new/indexNavigation',
+          data: {
+            'openid': sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (data) {
+            if (data.code == 1) {
+              vm.daohangData = data.data;
+              //给导航图片加前缀
+              for( var i = 0,l = vm.daohangData.length; i < l; i ++){
+                vm.daohangData[i].icon =  comLink.yxtImgHost + vm.daohangData[i].icon;
+              }
+            }
+          },
+          error: function (data) {
+
+          }
+        })
+      },
+      //品牌店铺子选项点击事件
+      toPinpaiStore(i){
+        this.pipaiIndex = i;
+        this.$router.push({
+          path : '/home/brandStoreRouter',
+          query : { id : this.pinpaiStoreData[this.pipaiIndex].id }
+        })
+      },
+      morePinpai(){
+        this.$router.push({
+          path : '/home/morePinpai',
+        })
+      },
+      //轮播图
+      luobotuAxios: function() {
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/index/newbanner',
+          data: {
+            'openid': sessionStorage.openid,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (data) {
+            if (data.code == 1) {
+              vm.getJingxunaData();//调用数据获取方法
+              for(var i = 0,l = data.data.length;i<l;i++){
+                var obj = {
+                  url: 'https://yxtccb.com/yxt/index.html#'+data.data[i].url,
+                  img: comLink.yxtImgHost+data.data[i].imgUrl,
+                  title: ''
+                };
+                vm.lunboUrl.push(obj);
+              }
+            }
+          },
+          error: function (data) {
+
+          }
+        })
+      },
+      //首页专区及商品
+      getAreaAndProduct: function() {
+        var vm = this;
+        $.ajax({
+          url: comLink.yxtHost + '/indexArea/areaAndProduct',
+          data: {
+            'openid': sessionStorage.openid
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (resp) {
+            if(resp.code == 1) {
+              vm.indexAreaList = resp.data;
+              for(var i = 0; i < vm.indexAreaList.length; i++) {
+                vm.indexAreaList[i].background = comLink.yxtImgHost + vm.indexAreaList[i].background;
+                vm.indexAreaList[i].img = comLink.yxtImgHost + vm.indexAreaList[i].img;
+                for(var j = 0; j < vm.indexAreaList[i].indexProductList.length; j++) {
+                  vm.indexAreaList[i].indexProductList[j].productLogo = comLink.yxtImgHost + vm.indexAreaList[i].indexProductList[j].productLogo;
+                }
+              }
+            } else {
+              Toast({
+                message: "数据请求失败",
+                duration: 2000
+              });
+            }
+          },
+          error: function (data) {
+
+          }
+        })
+
+      },
+      moreItems(){
+        this.$router.push({
+          path : '/sort',
+          // query : { id : this.pinpaiStoreData[this.gengduoIndex].id}
+        })
+      },
+      danjiMoreFenlei(proItem,i){
+        this.$router.push({
+          path : '/sort',
+          query : {
+            id : proItem.id,
+            index : i
+          }
+        });
+        this.$emit('changeActiveTabber');
+      },
+
+      daohangRouter(activeItem){
+        this.$router.push({
+          path : activeItem.link,
+          query : {type : activeItem.type}
+        })
+      },
+      getOpenId(){
+        let hash = window.location.hash;
+        hash = hash.split('#');
+        let value = hash[0];
+        value = value.split("=");
+        let openid = value[1];
+        if(openid == null || openid == 'null' || openid == undefined || openid == 'undefined' || openid == '') {
+          return;
+        } else {
+          if(openid.indexOf("?")!=-1) {
+            openid = openid.substr(0, openid.length - 1);
+          }
+          sessionStorage.setItem('openid',openid);
+          this.getManInfos();//获取个人信息
+        }
+      },
+      handleScroll () {
+        let scrollTop = document.body.scrollTop;
+        this.scroll = scrollTop;
+      },
+      //分享签名
+      sendWxtoOther(){
+        var vm=this;
+        $.ajax({
+          url: comLink.yxtHost + '/user/sign',
+          data: {
+            'url': window.location.href,
+          },
+          dataType: 'json',
+          type: 'post',
+          success: function (data) {
+            console.log(data)
+            if(data.code==1){
+              wx.config({
+                debug: false,
+                appId: data.data.appId, // 和获取Ticke的必须一样------必填，公众号的唯一标识
+                timestamp: data.data.timestamp, // 必填，生成签名的时间戳
+                nonceStr: data.data.nonceStr, // 必填，生成签名的随机串
+                signature: data.data.signature, // 必填，签名
+                jsApiList: [
+                  'onMenuShareAppMessage',
+                  'onMenuShareTimeline',
+                ]
+              });
+              wx.ready(function() {
+
+                wx.onMenuShareAppMessage({ //朋友
+                  title: '邮讯通商城龙卡专区',
+                  desc: '邮讯通商城龙卡专区首页',
+                  link: 'https://yxtccb.com/yxt/#/newhome',
+                  // link: data.data.link,
+                  imgUrl: "https://www.yxtccb.com/yxt/static/img/share.png",
+                  success: function() {
+
+                  },
+                  cancel: function() {
+
+                  }
+                });
+                //分享朋友圈
+                wx.onMenuShareTimeline({
+                  title: '邮讯通商城龙卡专区', // 分享标题
+                  desc: '邮讯通商城龙卡专区首页',
+                  link: 'https://yxtccb.com/yxt/#/newhome', // 分享链接
+                  imgUrl: "https://www.yxtccb.com/yxt/static/img/share.png", // 分享图标
+                  success: function () {
+                    // 用户确认分享后执行的回调函数
+                  },
+                  cancel: function () {
+                    // 用户取消分享后执行的回调函数
+                  }
+                });
+//			   		 	wx.hideMenuItems({
+//              menuList: ['menuItem:copyUrl'], // 要隐藏的菜单项，只能隐藏“传播类”和“保护类”按钮，所有menu项见附录3
+//              success:function(res){
+//              }
+//          	});
+              })
+            }
+
+          },
+          error: function (data) {
+
+          }
+        })
+      }
+    },
+
+    activated() {
+      if(this.scroll > 0){
+        window.scrollTo(0, this.scroll);
+        this.scroll = 0;
+        window.addEventListener('scroll', this.handleScroll);
+      }
+    },
+    deactivated(){
+      window.removeEventListener('scroll', this.handleScroll);
+
+    },
+    components: {
+      //注册子组件
+//  sounaComponent,//喇叭轮播图
+      Swiper,
+      SwiperItem,
+      GroupTitle,
+      beian
+    },
+    watch: {
+      '$route'(to,from) {
+
+        if(from.name === 'homeSearchRouter' || from.name === 'searchproRt' || from.name === 'sort' || from.name === 'cart' || from.name === 'mine'){
+
+          if(to.name == 'home-mian'){
+            this.sendWxtoOther();
+          }
+        }
+      },
+    },
+  };
+</script>
+<style>
+  /*.router{*/
+  /*width: 100%;*/
+  /*height: 100%;*/
+  /*}*/
+  .home-content .mint-swipe-indicators{
+    background-color: rgba(255,255,255,0.7);
+    border-radius: 1rem;
+  }
+  .home-content .mint-swipe-indicator.is-active{
+    background: #307ff5!important;
+    opacity: 1;
+  }
+  .home-content .mint-swipe-indicator{
+    background: #fff!important;
+    opacity: 1;
+  }
+</style>
+<style lang="scss" scoped>
+  @import "@/../src/sass/public.scss"; //导入scss初始文件
+  input::-webkit-input-placeholder {
+    color: #666 !important;
+  }
+  .to-top{
+    position: fixed;
+    display: inline-block;
+    width: p(60);
+    height: p(70);
+    bottom: p(355);
+    right: p(20);
+    background: black;
+    opacity: 0.6;
+    color: white;
+    text-align: center;
+
+    .icon-less{
+      font-size: p(40);
+    }
+  }
+  .marginRight{
+    padding-left: p(10);
+    margin-right: p(10);
+  }
+  .home-content{
+    /*position: absolute;*/
+    /*top: 0;*/
+    /*bottom: p(90);*/
+    /*right: 0;*/
+    /*left: 0;*/
+    padding-bottom: p(100);
+    width: 100%;
+    height: 100%;
+    /*overflow-y: auto;*/
+    .must-buy{
+      .msList{
+        overflow-x: auto;
+        width: auto;
+        white-space: nowrap;
+        overflow-y: hidden;
+        padding: 0 p(16);
+        -webkit-overflow-scrolling : touch;
+        li{
+          width: p(210);
+          height: p(285);
+          display: inline-block;
+          margin: 0 p(12) 0 0;
+          img{
+            width: p(210);
+            height: p(210);
+          }
+          p{
+            font-size: p(36);
+            color: #f66800;
+            line-height: p(75);
+            font-weight: 500;
+            text-align: center;
+            i{
+              font-size: p(24);
+              color: #b1b1b1;
+              display: inline-block;
+              margin-left: p(10);
+              text-decoration: line-through;
+            }
+          }
+        }
+      }
+      .title{
+        height: p(80);
+        line-height: p(80);
+        text-align: center;
+        font-size: p(36);
+        letter-spacing: p(2);
+        font-weight: 500;
+        color: #333333;
+        position: relative;
+        .bgimg{
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom:0 ;
+          height: p(80);
+          width: 100%;
+        }
+        em{
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          font-style: normal;
+          height: auto;
+          transform:translateX(-50%) translateY(-50%);
+        }
+        /*background: url(../../static/img/couponbg.png) no-repeat center;*/
+        /*background-size:100% ;*/
+        span{
+          position: absolute;
+          right: p(15);
+          font-size: p(24);
+          color: #666666;
+          img{
+            vertical-align: -5%;
+            display: inline-block;
+            margin-left: p(5);
+            width: p(26);
+            height: p(26);
+          }
+        }
+      }
+      .buy-ad{
+        img{
+          width: 100%;
+          height: p(376);
+        }
+      }
+      .must-list{
+        box-sizing: border-box;
+        ul{
+          li{
+            width:50%;
+            height: p(504);
+            margin-bottom: p(10);
+            box-sizing: border-box;
+            /*margin-right: p(3);*/
+            dt{
+              box-sizing: border-box;
+              img{
+                width:p(372);
+                height: p(372);
+              }
+              .txt{
+                padding: 0 p(34);
+                font-size: p(26);
+                line-height: p(40);
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                font-weight: 500;
+                letter-spacing: 0px;
+                color: #333333;
+                box-sizing: border-box;
+
+              }
+              .price{
+                box-sizing: border-box;
+                padding: 0 p(34);
+                line-height: p(40);
+                font-size: p(28);
+                font-weight: 500;
+                color: #f66800;
+              }
+            }
+
+          }
+        }
+      }
+    }
+    .active-main{
+      .title{
+        height: p(80);
+        line-height: p(80);
+        text-align: center;
+        font-size: p(36);
+        letter-spacing: p(2);
+        font-weight: 500;
+        color: #333333;
+        position: relative;
+        .bgimg{
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom:0 ;
+          height: p(80);
+          width: 100%;
+        }
+        em{
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          font-size: normal;
+          height: auto;
+          transform:translateX(-50%) translateY(-50%);
+        }
+        /*background: url(../../static/img/couponbg.png) no-repeat center;*/
+        /*background-size:100% ;*/
+        span{
+          position: absolute;
+          right: p(15);
+          font-size: p(24);
+          color: #666666;
+          img{
+            vertical-align: -5%;
+            display: inline-block;
+            margin-left: p(5);
+            width: p(26);
+            height: p(26);
+          }
+        }
+      }
+      .active-show{
+        box-sizing: border-box;
+        height: p(530);
+        width: 100%;
+        .left{
+          width: 50%;
+          display: inline-block;
+          height: p(530);
+          position:relative;
+          .brand{
+            position: absolute;
+            left: p(28);
+            top:p(25);
+            font-size: p(30);
+            color: #000;
+            z-index: 9;
+          }
+          .detail{
+            position: absolute;
+            left: p(28);
+            top:p(63);
+            font-size: p(22);
+            color: #999;
+            z-index: 9;
+          }
+          img{
+            width: 100%;
+            bottom: 0;
+            left: 0;
+            position: absolute;
+          }
+        }
+        .right{
+          width: 50%;
+          display: inline-block;
+          height: p(265);
+          position:relative;
+          .brand{
+            position: absolute;
+            left: p(28);
+            top:p(25);
+            font-size: p(30);
+            color: #000;
+            z-index: 9;
+          }
+          .detail{
+            position: absolute;
+            left: p(28);
+            top:p(63);
+            font-size: p(22);
+            color: #999;
+            z-index: 9;
+          }
+          div{
+            line-height: 0.8;
+            a{
+              display: inline-block;
+              box-sizing: content-box;
+              width: 100%;
+              height: p(265);
+              img{
+                width: 100%;
+                height: 100%;
+              }
+            }
+
+          }
+
+        }
+      }
+    }
+    .coupon-main{
+      .title{
+        height: p(80);
+        line-height: p(80);
+        text-align: center;
+        font-size: p(36);
+        letter-spacing: p(2);
+        box-sizing: border-box;
+        font-weight: 500;
+        color: #333333;
+        position: relative;
+        .bgimg{
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom:0 ;
+          height: p(80);
+          width: 100%;
+        }
+        /*position: relative;*/
+        /*background: url(../../static/img/couponbg.png) no-repeat center;*/
+        /*background-size:100% ;*/
+        em{
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          font-size: normal;
+          height: auto;
+          transform:translateX(-50%) translateY(-50%);
+        }
+        span{
+          position: absolute;
+          right: p(15);
+          font-size: p(24);
+          color: #666666;
+          img{
+            vertical-align: -5%;
+            display: inline-block;
+            margin-left: p(5);
+            width: p(26);
+            height: p(26);
+          }
+        }
+      }
+      .all-Coupon{
+        width: 100%;
+        img{
+          width: 100%;
+        }
+      }
+      .coupon-divide{
+        padding: p(10) p(0) p(10) p(0);
+        text-align: center;
+        .top{
+          margin:p(10) 0;
+          display:inline-block;
+          /*padding-left:0.5rem;*/
+          a{
+            display:inline-block;
+            position: relative;
+            img{
+              width: p(325);
+              height: p(120);
+            }
+            .tit{
+              font-size: p(24);
+              color: #fff2f2;
+              position: absolute;
+              top: p(15);
+              left: p(16);
+            }
+            .num{
+              font-size: p(20);
+              color: #FFF2FD;
+              position: absolute;
+              top: p(45);
+              left: p(16);
+            }
+          }
+          a:first-child{
+            margin-right: p(22);
+          }
+        }
+      }
+
+
+    }
+    .miaos{
+      >p{
+        padding: p(20);
+        .tit{
+          font-size: p(30);
+          line-height: p(30);
+          color: #333333;
+          font-weight: 500;
+        }
+        .name{
+          font-size: p(28);
+          color: #333333;
+          display: inline-block;
+          margin-right: p(20);
+        }
+        .time{
+          font-size: p(28);
+          color: #333333;
+          i{
+            display: inline-block;
+            width: p(33);
+            height: p(30);
+            background-color: #3e3e3e;
+            border-radius: p(4);
+            color: #fff;
+            line-height: p(30);
+            text-align: center;
+            font-size: p(24);
+          }
+        }
+      }
+      .msList{
+        overflow-x: auto;
+        width: auto;
+        white-space: nowrap;
+        overflow-y: hidden;
+        padding: 0 p(16);
+        -webkit-overflow-scrolling : touch;
+        li{
+          width: p(210);
+          height: p(285);
+          display: inline-block;
+          margin: 0 p(12) 0 0;
+          img{
+            width: p(210);
+            height: p(210);
+          }
+          p{
+            font-size: p(36);
+            color: #f66800;
+            line-height: p(75);
+            font-weight: 500;
+            text-align: center;
+            i{
+              font-size: p(24);
+              color: #b1b1b1;
+              display: inline-block;
+              margin-left: p(10);
+              text-decoration: line-through;
+            }
+          }
+        }
+      }
+    }
+
+    .search-main{
+      height: p(90);
+      width: 100%;
+      background: #fff;
+      padding: 0 p(30);
+
+      .search-inp-main{
+        margin: p(12) 0;
+        width: 90%;
+        height: p(64);
+        border-radius: p(6);
+        background: #f5f5f5;
+        line-height: p(70);
+        position: relative;
+        .icon-search{
+          position: absolute;
+          /*width: 15%;*/
+          left: 20%;
+          font-size: p(35);
+          background: #f5f5f5;
+        }
+        .head-search{
+          width: 100%;
+          height: 100%;
+          text-align: center;
+          background: #f5f5f5;
+          border-radius: 1rem;
+          font-size: p(24);
+        }
+      }
+      .search-btn{
+        display: inline-block;
+        width: 10%;
+        height: 100%;
+        text-align: center;
+        /*margin-top: p(8);*/
+        vertical-align: middle;
+        padding-top: p(25);
+        position: relative;
+        .newsNum{
+          display: inline-block;
+          width: p(30);
+          position: absolute;
+          height: p(30);
+          border-radius: 50%;
+          text-align: center;
+          color: #fff;
+          line-height: p(30);
+          right: 0;
+          font-size: p(20);
+          top: p(8);
+          background-color: #ad090a;
+        }
+        img{
+          display: inline;
+          width: p(38);
+          height: p(35);
+          vertical-align: middle;
+        }
+        .mine-icon-wai{
+          width: 100%;
+          height: 50%;
+          text-align: center;
+          .mineIcon{
+            height: 100%;
+
+          }
+        }
+        .mine{
+          display: inline-block;
+          width: 100%;
+          text-align: center;
+          margin-top: p(5);
+        }
+      }
+    }
+    .page-content{
+      position: absolute;
+      top: p(90);
+      bottom: 0;
+      right: 0;
+      left: 0;
+      overflow-y: auto;
+    }
+    /*轮播图开始*/
+    .slideshow-content{
+      width: 100%;
+      height : p(620);
+      .slideshow-pic{
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .btn{
+        width: p(70);
+        height: p(18);
+        background: transparent;
+        opacity: 0.7;
+        bottom: p(20);
+        left: 50%;
+        margin-left: p(-35);
+        border-radius: p(20);
+        display: flex;
+        justify-content: space-evenly;
+
+        .pic-btn.active{
+          background: #307ff5;
+        }
+        .pic-btn{
+          display: inline-block;
+          margin-top: p(4);
+          width: p(10);
+          height: p(10);
+          border-radius: 50%;
+          background: white;
+          opacity: 1;
+        }
+      }
+    }
+    /*轮播图结束*/
+    .item-list{
+      width: 100%;
+      height: p(50);
+
+      .list-main{
+
+        .list-main-row{
+          width: 25%;
+          height: 100%;
+          text-align: center;
+
+          .li-inner{
+            display: inline-block;
+            /*width: 100%;*/
+            height: 100%;
+            margin: p(10) auto;
+
+            .list-pic{
+              width: p(32);
+              height: p(32);
+            }
+            .word{
+              margin-top: p(3);
+            }
+          }
+
+        }
+      }
+    }
+
+
+
+    /*功能列表—今日抢购-领优惠劵 等*/
+    .active-item-list{
+      padding: p(30) 0 p(10) 0;
+      margin-top: p(2);
+
+      .active-item-main{
+
+        .active-item-main-row{
+          width: 25%;
+          height: 100%;
+          text-align: center;
+          .active-pics{
+            display: inline-block;
+            width: p(80);
+            height: p(80);
+            /*border-radius: 50%;*/
+          }
+          .active-words{
+            color: #929292;
+            font-size: p(24);
+          }
+        }
+      }
+    }
+
+    /*精选频道*/
+    .has-title .select-title{
+      text-align: center;
+
+      .import-choose{
+        letter-spacing: 0.1rem;
+        margin-bottom: p(5);
+        font-weight: 550;
+        color: #666;
+      }
+      .pTitle{
+        color: $bgBlue;
+      }
+    }
+    .selection-pro{
+
+      .selection-pro-main{
+        padding: p(15) p(15);
+        /*display: flex;*/
+        /*justify-content: space-evenly;*/
+
+        .selection-pro-row{
+          margin: p(10) 0 p(30) 0;
+          width: 25%;
+          /*box-sizing: border-box;*/
+          /*border: p(1) solid #ccc;*/
+          text-align: center;
+          height: p(180);
+
+          .img-wai{
+            display: inline-block;
+            width: 80%;
+            /*height: p(100);*/
+            overflow: hidden;
+            text-align: center;
+
+            .select-pic{
+              width: 100%;
+              /*height: p(90);*/
+            }
+          }
+
+          .select-word{
+            margin-top: p(27);
+          }
+          /*.item-line{*/
+          /*width: p(60);*/
+          /*height: p(10);*/
+          /*background: #444444;*/
+          /*display: inline-block;*/
+          /*text-align: center;*/
+          /*}*/
+        }
+        .import-choosemore-btn{
+          height: p(100);
+          text-align: center;
+          margin-top: p(50);
+
+          .checkMoreImg{
+            width: p(40);
+            margin-top: p(25);
+          }
+
+          .more-item{
+            margin-top: p(20);
+            padding-left: p(20);
+          }
+          .more-item:after{
+            content: ' >';
+          }
+        }
+      }
+    }
+
+    /*品牌产品*/
+    .brand-store{
+
+      .brandpro-main{
+        padding: 0 p(20);
+        .pro-pic-row{
+          width: 25%;
+          height: p(170);
+          padding: p(2);
+          box-sizing: border-box;
+          text-align: center;
+          /*border: p(1) solid #ccc;*/
+          .pro-pics{
+            width: 100%;
+          }
+        }
+
+        .more-brand{
+          width: 25%;
+          height: p(170);
+          text-align: center;
+          line-height: p(37);
+          box-sizing: border-box;
+          /*border: p(1) solid #ccc;*/
+          .word-btn{
+            display: inline-block;
+            width: p(60);
+            position: absolute;
+            top: 50%;
+            margin-top: p(-40);
+            left: 50%;
+            margin-left: p(-30);
+
+            /*<!--margin-top: p(-20);-->*/
+          }
+        }
+      }
+    }
+
+    .brand-adv-content{
+      padding-bottom: p(20);
+      .brand-adv-main{
+        width: 100%;
+        text-align: center;
+        margin-bottom: p(20);
+        .title{
+          margin-top: p(20);
+        }
+        .title,.banner-pic{
+          padding: 0 p(20);
+        }
+
+        .banner-pic{
+          width: 100%;
+          padding: 0 p(15);
+
+          .big-img{
+            width: 100%;
+            border-radius: p(20);
+          }
+        }
+        /*产品详细及价格*/
+        .pro-pri-main{
+          width: 100%;
+          padding: 0 p(10);
+          .pro-pai-row{
+            width: 33.33%;
+            padding: 0 p(10);
+            .row-inner{
+              width: 100%;
+              height: 100%;
+              box-sizing: border-box;
+              border: p(2) solid #d9d9d9;
+              border-radius: p(10);
+              padding: 0 p(10);
+
+              .pro-name{
+                margin-top: 0.5rem;
+                line-height: 2.2rem;
+                text-align: left;
+                height: 4.4rem;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                font-size: 1.6rem;
+              }
+
+              .pro-fenqi-price{
+                margin-top: 1rem;
+                color: $qianhong;
+              }
+
+              .pro-fenqi-price{
+                margin-top: 0.5rem;
+                text-align: left;
+              }
+              .pro-price{
+                margin: 0.5rem 0 0.5rem 0;
+                color: #9d9d9d;
+                text-align: left;
+              }
+              .pro-img{
+                display: inline-block;
+                margin-top: 0;
+                /*width: 100%;*/
+                height: p(160);
+              }
+            }
+          }
+        }
+      }
+    }
+    /*产品价格及详细列表*/
+    .today-recom-content{
+      width: 100%;
+      /*引入组件*/
+    }
+    /*进入页面的广告弹窗*/
+    .enter-popup-content{
+      position: fixed;
+      z-index: 99;
+      left: p(95);
+      right: p(95);
+      top: p(280);
+      height: p(900);
+
+      .white-part{
+        /*<!--background: $bgBlue;-->*/
+        height: p(800);
+        background-image: url("../../static/image/home/pop_img.png");
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        position: relative;
+        padding-top: p(225);
+
+        .top-img{
+          width: 100%;
+          position: absolute;
+          top: p(-85);
+          text-align: center;
+
+          .img-pic{
+            width: 80%;
+            height: p(220);
+          }
+        }
+        .title{
+          /*margin-top: p(135);*/
+          width: 100%;
+          text-align: center;
+          color: white;
+
+          .big-title{
+            font-size: p(55);
+            display: block;
+          }
+          .small-title{
+            line-height: p(54);
+            margin-bottom: p(20);
+          }
+        }
+        .coupon-content{
+          padding: 0 p(30);
+
+          .coupon-img{
+            width: 100%;
+          }
+          .coupon-words{
+            width: 100%;
+            top: 0;
+            .left{
+              width: 31.3131%;
+              .coupon-price{
+                font-size: p(60);
+              }
+            }
+            .right{
+              width: 68.6868%;
+              .right-details{
+                display: inline-block;
+                width: 100%;
+                float: left;
+              }
+              .right-details:nth-child(1){
+                line-height: p(44);
+                margin-top: p(10);
+              }
+              .right-details:nth-child(2){
+                height: p(30);
+              }
+              .right-details:nth-child(3){
+                line-height: p(58);
+              }
+            }
+          }
+        }
+        .get-yanzhengCode-content{
+          width: 100%;
+          .phone{
+            padding: 0 p(40);
+            width: 100%;
+            margin-bottom: p(10);
+            .ipt{
+              width: 100%;
+            }
+          }
+          .yanzheng-code{
+            padding: 0 p(40);
+            width: 100%;
+            .ipt{
+              width: 60%;
+            }
+            .get-btn{
+              width: 35%;
+              display: inline-block;
+              height: 100%;
+              line-height: p(60);
+              text-align: center;
+              background: #eee;
+              border-radius: p(10);
+            }
+          }
+          .ipt{
+            display: inline-block;
+            box-sizing: border-box;
+            border: 1px solid $danlan;
+            border-radius: p(10);
+            height: p(60);
+            line-height: p(60);
+            padding-left: p(10);
+          }
+        }
+        .get-coupon-btn{
+          width: 100%;
+          padding: 0 p(120);
+          height: p(60);
+          text-align: center;
+
+          .btn{
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            line-height: p(60);
+            background: white;
+            color: $bgBlue;
+            border-radius: p(60);
+          }
+        }
+      }
+      .close-main{
+        width: 100%;
+        height: p(60);
+        text-align: center;
+        margin-top: p(40);
+        .icon-close{
+          height: p(60);
+          line-height: p(60);
+          font-size: p(30);
+          width: p(60);
+          color: white;
+          border: 1px solid white;
+          border-radius: 50%;
+
+        }
+      }
+    }
+    .black-cover{
+      position: fixed;
+      z-index: 98;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background: black;
+      opacity: 0.3;
+    }
+    .ds {
+      margin-right: 1.375rem;
+    }
+  }
+</style>
+
